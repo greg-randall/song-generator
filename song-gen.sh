@@ -47,14 +47,19 @@ do
   if [ $keyword_count -ge 1 ]; then
     break
   else
-    echo "Error: Didn't find keyword"
-    loop=$loop+1
+    echo -e "Error: Didn't find keyword, retrying\n"
+    loop=$(( $loop + 1 ))
   fi
   if [$loop -ge 10]; then
-    echo "Error: Exiting Loop after 10 tries"
+    echo -e "Error: Exiting Loop after 10 tries\n"
+    exit=true
     break
   fi
 done
+
+if [ $exit ]; then
+  break
+fi
 
 cat $output.txt
 
