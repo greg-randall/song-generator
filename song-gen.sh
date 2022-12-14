@@ -29,14 +29,16 @@ do
           "presence_penalty": 0.6,
           "stop": [" Human:", " AI:"]
         }' | \
-  jq . | \
-  grep -i '"text"' | \
-  perl -pe   's/"text":\s"//; \
-              s/\s*",$//; \
-              s/\\n\\n//; \
-              s/^\s+//; \
-              s/\\n/\n/g; \
-              s/\\"//' | \
+  jq . > temp.txt
+
+  grep -i '"text"' temp.txt | \
+  awk '{gsub(/\\n/, "~")} 1' | \
+  perl -pe 's/^\s*"text":\s"//g' | \
+  perl -pe 's/\s*",$//g' | \
+  perl -pe 's/^\s*\w*~~",$//g' | \
+  perl -pe 's/\s*~\s*/\n/g' | \
+  perl -pe 's/\n+/\n/g' | \
+  perl -pe 's/^\n//g' | \
   grep -iv "verse" | grep -iv "chorus" | grep -iv "bridge" > $output.txt
 
   keyword_count=$( grep -i $key_word "$output.txt" | wc -l)
