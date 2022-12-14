@@ -4,7 +4,7 @@ curl https://api.openai.com/v1/completions \
   -H "Authorization: Bearer $apikey" \
   -d '{
         "model": "text-davinci-003",
-        "prompt": "Write Hotdog verse about buns",
+        "prompt": "Write Hotdog verse about dancing",
         "temperature": 0.9,
         "max_tokens": 150,
         "top_p": 1,
@@ -19,7 +19,10 @@ perl -pe   's/"text":\s"//; \
             s/\\n\\n//; \
             s/^\s+//; \
             s/\\n/\n/g' | \
-gtts-cli - --output test.wav
+gtts-cli - --output verse.wav
 
-ffmpeg -i test.wav -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest -b:a 160k output5.mp3
 
+#casio beat taken from https://audiokitpro.com/free-toy-casio-loops/
+ffmpeg -i verse.wav -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest -b:a 160k song_$( date +%s ).mp3
+
+rm verse.wav

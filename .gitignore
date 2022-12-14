@@ -1,2 +1,4 @@
 config.sh
 etc
+*.wav
+*.mp3
