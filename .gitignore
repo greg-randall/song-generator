@@ -2,5 +2,5 @@ config.sh
 etc
 *.wav
 *.mp3
-popular.txt
+*popular.txt
 song*.txt

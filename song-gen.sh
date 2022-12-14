@@ -5,17 +5,12 @@ if [ ! -f "popular.txt" ]; then
     curl --silent https://raw.githubusercontent.com/dolph/dictionary/master/popular.txt > popular.txt
 fi
 
-seed_word=$( shuf -n 1 popular.txt )
-prompt="Write $song_contents verse about $seed_word:"
+seed_word=$( shuf -n 1 popular.txt | perl -pe 's/[^\w]//')
+prompt="Write $song_contents verse about $seed_word"
 time=$( date +%s )
 output="song-$seed_word-$time"
 
 echo -e "$prompt\n"
-
-if [ ! -f "popular.txt" ]; then
-    echo "Downloading Dictonary File; Only happens once!"
-    curl --silent https://raw.githubusercontent.com/dolph/dictionary/master/popular.txt > popular.txt
-fi
 
 loop=1
 
@@ -48,23 +43,21 @@ do
   if [ $keyword_count -ge 1 ]; then
     break
   else
-    echo -e "Error: Didn't find keyword, retrying\n"
     loop=$(( loop + 1 ))
+    echo -e "Error: Didn't find keyword, retrying $loop\n"
   fi
-  if [$loop -ge 10]; then
+  if [ $loop -ge 10 ]; then
     echo -e "Error: Exiting Loop after 10 tries\n"
     exit=true
     break
   fi
 done
 
-if [ $exit ]; then
-  break
+if [ ! $exit ]; then
+  cat $output.txt
+
+  gtts-cli -f $output.txt | ffmpeg -hide_banner -loglevel error -f mp3 -i - -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest -b:a 160k $output.mp3
+  #casio beat taken from https://audiokitpro.com/free-toy-casio-loops/
+
+  echo -e "\nDone: $output.mp3"
 fi
-
-cat $output.txt
-
-gtts-cli -f $output.txt | ffmpeg -hide_banner -loglevel error -f mp3 -i - -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest -b:a 160k $output.mp3
-#casio beat taken from https://audiokitpro.com/free-toy-casio-loops/
-
-echo -e "\nDone: $output.mp3"
