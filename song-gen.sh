@@ -40,15 +40,16 @@ do
               s/\s*",$//; \
               s/\\n\\n//; \
               s/^\s+//; \
-              s/\\n/\n/g' | \
-  grep -iv "verse" | grep -iv "chorus" > $output.txt
+              s/\\n/\n/g; \
+              s/\\"//' | \
+  grep -iv "verse" | grep -iv "chorus" | grep -iv "bridge" > $output.txt
 
   keyword_count=$( grep -i $key_word "$output.txt" | wc -l)
   if [ $keyword_count -ge 1 ]; then
     break
   else
     echo -e "Error: Didn't find keyword, retrying\n"
-    loop=$(( $loop + 1 ))
+    loop=$(( loop + 1 ))
   fi
   if [$loop -ge 10]; then
     echo -e "Error: Exiting Loop after 10 tries\n"
