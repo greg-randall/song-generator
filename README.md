@@ -2,8 +2,10 @@
 
 This will create a hotdog themed song automatically
 
-Setup:
+## Setup:
+
 Make a copy of the 'blank-config.sh' file and rename it to 'config.sh'.
+
 Get an api key from https://beta.openai.com/account/api-keys, add your api key to the 'config.sh' file.
 
 You'll probably need to install:
