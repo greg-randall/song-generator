@@ -12,4 +12,5 @@ You'll probably need to install:
 * jq - https://stedolan.github.io/jq/
 * gtts-cli - https://manpages.ubuntu.com/manpages/bionic/man1/gtts-cli.1.html 
 * ffmpeg - https://ffmpeg.org/ 
+* sox - https://linux.die.net/man/1/sox
 
