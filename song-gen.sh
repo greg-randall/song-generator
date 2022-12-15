@@ -11,7 +11,6 @@ fi
 
 #grab the seed word from the dictonary & trim to make sure it's just letters
 seed_word=$( shuf -n 1 popular.txt | perl -pe 's/[^\w]//')
-seed_word="matriarch"
 #build the prmpt for openai
 prompt="Write $song_contents rhyming verse about $seed_word"
 echo -e "$prompt\n"
