@@ -13,7 +13,7 @@ fi
 seed_word=$( shuf -n 1 popular.txt | perl -pe 's/[^\w]//')
 
 #build the prmpt for openai
-prompt="Write $song_contents verse about $seed_word"
+prompt="Write $song_contents rhyming verse about $seed_word"
 echo -e "$prompt\n"
 
 #generate output filename
@@ -56,6 +56,18 @@ do
   #remove leading linebreaks
   perl -pe 's/^\n*//g' | \
 
+  #sometimes there's a single word on the first line, this removes that. 
+  perl -pe 's/^\w+\n//g' | \
+
+  #sometimes the first line is really short, this removes that. 
+  perl -pe 's/^.{0,10}\n//g' | \
+
+  #sometimes there are escaped quotes. 
+  perl -pe 's/\\"//g' | \
+
+  #sometimes there are doublespaces 
+  perl -pe 's/\s+/ /' | \
+
   #somtimes openai outputs a line like "verse 1:", we'll remoove those
   grep -iv "verse" | \
   grep -iv "chorus" | \
@@ -63,17 +75,21 @@ do
 
   #sometimes the openai output doesn't actually contain the key concept of the song
   #so we count the number of times that the word appears
-  keyword_count=$( grep -i $key_word "$output.txt" | wc -l)
+  keyword_count=$( grep -i $key_word "$output.txt" | wc -l )
 
-  #if the keyword appears, we break out of the loop
-  if [ $keyword_count -ge 1 ]; then
+  seedword_count=$( grep -i $seed_word "$output.txt" | wc -l )
+
+
+
+  #if the keyword & seedword appears, we break out of the loop
+  if [ $keyword_count -ge 1 ] && [ $seedword_count -ge 1 ]; then
     break
   else
-    #if the keyword doesn't exist, increment loop counter and try again
+    #if the keyword & seedword doesn't exist, increment loop counter and try again
     loop=$(( loop + 1 ))
-    echo -e "Error: Didn't find keyword, retrying $loop\n"
+    echo -e "Error: Didn't find keywords, try $loop\n"
 
-    #if we try to get a string with the keyword ten times, and fail, break the loop
+    #if we try to get a string with the keyword & seedword ten times, and fail, break the loop
     if [ $loop -ge 10 ]; then
       echo -e "Error: Exiting Loop after 10 tries\n"
       exit=true
@@ -82,7 +98,7 @@ do
   fi
 done
 
-#make sure we actually got a successful string with the keyword
+#make sure we actually got a successful string with the keyword & seedword
 if [ ! $exit ]; then
 
   #print the verse out for viewers
@@ -90,7 +106,15 @@ if [ ! $exit ]; then
 
   #generate the text to speech track, and then back it with the casio loop song
   #casio beat taken from https://audiokitpro.com/free-toy-casio-loops/
-  gtts-cli -f $output.txt | ffmpeg -hide_banner -loglevel error -f mp3 -i - -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest -b:a 160k $output.mp3
+  gtts-cli --lang en --nocheck -f $output.txt | ffmpeg -hide_banner -loglevel error -f mp3 -i - -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest temp.wav
+  
+  sox temp.wav temp2.wav reverb 10 10 30
+
+  ffmpeg -hide_banner -loglevel error -i temp2.wav -b:a 160k $output.mp3
   
   echo -e "\nDone: $output.mp3"
+
+  rm temp.wav
+  rm temp2.wav
+  rm temp.txt
 fi
