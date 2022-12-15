@@ -11,7 +11,7 @@ fi
 
 #grab the seed word from the dictonary & trim to make sure it's just letters
 seed_word=$( shuf -n 1 popular.txt | perl -pe 's/[^\w]//')
-
+seed_word="matriarch"
 #build the prmpt for openai
 prompt="Write $song_contents rhyming verse about $seed_word"
 echo -e "$prompt\n"
@@ -75,7 +75,11 @@ do
 
   #sometimes the openai output doesn't actually contain the key concept of the song
   #so we count the number of times that the word appears
-  keyword_count=$( grep -i $key_word "$output.txt" | wc -l )
+  if [ ${#key_word} -ge 1 ]; then
+    keyword_count=$( grep -i $key_word "$output.txt" | wc -l )
+  else
+    keyword_count=1
+  fi
 
   seedword_count=$( grep -i $seed_word "$output.txt" | wc -l )
 
