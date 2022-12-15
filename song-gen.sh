@@ -62,7 +62,7 @@ do
   perl -pe 's/^\w+\n//g' | \
 
   #sometimes the first line is really short, this removes that. 
-  perl -pe 's/^.{0,10}\n//g' | \
+  perl -pe 's/^.{0,15}\n//g' | \
 
   #sometimes there are escaped quotes. 
   perl -pe 's/\\"//g' | \
