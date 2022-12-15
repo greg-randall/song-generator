@@ -15,8 +15,11 @@ seed_word=$( shuf -n 1 popular.txt | perl -pe 's/[^\w]//')
 prompt="Write $song_contents rhyming verse about $seed_word"
 echo -e "$prompt\n"
 
+#get timestamp, to not clobber other files
+time=$( date +%s )
+
 #generate output filename
-output="song-$seed_word-$( date +%s )"
+output="song-$seed_word-$time"
 
 
 loop=1
@@ -35,10 +38,10 @@ do
           "frequency_penalty": 0.0,
           "presence_penalty": 0.6,
           "stop": [" Human:", " AI:"]
-        }' | jq . > temp.txt
+        }' | jq . > temp_$time.txt
 
   #get just the response line from the json
-  grep -i '"text"' temp.txt | \
+  grep -i '"text"' temp_$time.txt | \
 
   #replace the literal "\n"s with tildes
   awk '{gsub(/\\n/, "~")} 1' | \
@@ -109,15 +112,15 @@ if [ ! $exit ]; then
 
   #generate the text to speech track, and then back it with the casio loop song
   #casio beat taken from https://audiokitpro.com/free-toy-casio-loops/
-  gtts-cli --lang en --nocheck -f $output.txt | ffmpeg -hide_banner -loglevel error -f mp3 -i - -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest temp.wav
+  gtts-cli --lang en --nocheck -f $output.txt | ffmpeg -hide_banner -loglevel error -f mp3 -i - -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest temp_$time.wav
   
-  sox temp.wav temp2.wav reverb 10 10 30
+  sox temp_$time.wav temp_$time-2.wav reverb 10 10 30
 
-  ffmpeg -hide_banner -loglevel error -i temp2.wav -b:a 160k $output.mp3
+  ffmpeg -hide_banner -loglevel error -i temp_$time-2.wav -b:a 160k $output.mp3
   
   echo -e "\nDone: $output.mp3"
 
-  rm temp.wav
-  rm temp2.wav
-  rm temp.txt
+  rm temp_$time.wav
+  rm temp_$time-2.wav
+  rm temp_$time.txt
 fi
