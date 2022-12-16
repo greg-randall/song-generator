@@ -11,8 +11,13 @@ fi
 
 #grab the seed word from the dictonary & trim to make sure it's just letters
 seed_word=$( shuf -n 1 popular.txt | perl -pe 's/[^\w]//')
+
+#grab the genre from the list & trim to make sure it's just letters
+#https://www.musicgenreslist.com/
+genre_word=$( shuf -n 1 genres.txt | perl -pe 's/[^\w]//')
+
 #build the prmpt for openai
-prompt="Write $song_contents rhyming verse about $seed_word"
+prompt="Write short rhyming $genre_word music lyrics about $song_contents and $seed_word."
 echo -e "$prompt\n"
 
 #get timestamp, to not clobber other files
@@ -33,7 +38,7 @@ do
           "model": "text-davinci-003",
           "prompt": "'"$prompt"'",
           "temperature": 1,
-          "max_tokens": 150,
+          "max_tokens": 250,
           "top_p": 1,
           "frequency_penalty": 0.0,
           "presence_penalty": 0.6,
