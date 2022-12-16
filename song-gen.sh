@@ -24,7 +24,7 @@ echo -e "$prompt\n"
 time=$( date +%s )
 
 #generate output filename
-output="song-$seed_word-$time"
+output=$(echo "song-$genre_word-$song_contents-$seed_word-$time" | perl -pe 's/\s/_/g' )
 
 
 loop=1
@@ -70,33 +70,33 @@ do
   perl -pe 's/^.{0,15}\n//g' | \
 
   #sometimes there are escaped quotes. 
-  perl -pe 's/\\"//g' | \
+  perl -pe 's/\\"/"/g' | \
 
   #sometimes there are doublespaces 
   perl -pe 's/\s+/ /' | \
 
-  #somtimes openai outputs a line like "verse 1:", we'll remoove those
+  #somtimes openai outputs a line like "verse 1:", we'll remove those
   grep -iv "verse" | \
   grep -iv "chorus" | \
   grep -iv "bridge" > $output.txt
 
   #sometimes the openai output doesn't actually contain the key concept of the song
   #so we count the number of times that the word appears
+  #requiring the keyword is optional, so we check too to see if it's blank
   if [ ${#key_word} -ge 1 ]; then
     keyword_count=$( grep -i $key_word "$output.txt" | wc -l )
   else
     keyword_count=1
   fi
 
+  #sometimes the openai output doesn't actually contain the seedword
   seedword_count=$( grep -i $seed_word "$output.txt" | wc -l )
-
-
 
   #if the keyword & seedword appears, we break out of the loop
   if [ $keyword_count -ge 1 ] && [ $seedword_count -ge 1 ]; then
     break
   else
-    #if the keyword & seedword doesn't exist, increment loop counter and try again
+    #if the keyword & seedword don't appear, increment loop counter and try again
     loop=$(( loop + 1 ))
     echo -e "Error: Didn't find keywords, try $loop\n"
 
@@ -119,12 +119,15 @@ if [ ! $exit ]; then
   #casio beat taken from https://audiokitpro.com/free-toy-casio-loops/
   gtts-cli --lang en --nocheck -f $output.txt | ffmpeg -hide_banner -loglevel error -f mp3 -i - -i beat_long.mp3 -filter_complex amix=inputs=2:duration=shortest temp_$time.wav
   
+  #add a tiny bit of reverb to the output track
   sox temp_$time.wav temp_$time-2.wav reverb 10 10 30
 
+  #create the final mp3
   ffmpeg -hide_banner -loglevel error -i temp_$time-2.wav -b:a 160k $output.mp3
   
   echo -e "\nDone: $output.mp3"
 
+  #remove the temporary files
   rm temp_$time.wav
   rm temp_$time-2.wav
   rm temp_$time.txt
